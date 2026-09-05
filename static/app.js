@@ -11,410 +11,416 @@ const newChatBtn = document.getElementById("newChat");
 const chatHistory = document.getElementById("chatHistory");
 
 const stopBtn = document.getElementById("stopBtn");
+const settingsBtn = document.getElementById("settingsBtn");
 
 let chats = [];
 let currentChat = null;
 let activeController = null;
 let isGenerating = false;
 
-
-/* =========================
-   STORAGE
-========================= */
+/* =========================================================
+STORAGE
+========================================================= */
 
 function saveChats() {
-    try {
-        localStorage.setItem(
-            "nexora_chats",
-            JSON.stringify(chats)
-        );
-    } catch (error) {
-        console.error("Could not save chats:", error);
-    }
+localStorage.setItem(
+"nexora_chats",
+JSON.stringify(chats)
+);
 }
-
 
 function loadChats() {
-    try {
-        chats =
-            JSON.parse(
-                localStorage.getItem("nexora_chats")
-            ) || [];
-    } catch {
-        chats = [];
-    }
-
-    if (chats.length > 0) {
-        currentChat = chats[0];
-    }
-
-    renderHistory();
-    renderChat();
+try {
+chats =
+JSON.parse(
+localStorage.getItem("nexora_chats")
+) || [];
+} catch {
+chats = [];
 }
 
+if (chats.length > 0) {
+    currentChat = chats[0];
+}
 
-/* =========================
-   CHAT CREATION
-========================= */
+renderHistory();
+renderChat();
+
+}
+
+/* =========================================================
+CHAT CREATION
+========================================================= */
 
 function createChat() {
 
-    const newChat = {
-        id:
-            crypto.randomUUID
-                ? crypto.randomUUID()
-                : Date.now().toString(),
+const newChat = {
+    id:
+        typeof crypto !== "undefined" &&
+        crypto.randomUUID
+            ? crypto.randomUUID()
+            : Date.now().toString(),
 
-        title: "New Chat",
+    title: "New Chat",
 
-        messages: []
-    };
+    messages: []
+};
 
-    chats.unshift(newChat);
+chats.unshift(newChat);
 
-    currentChat = newChat;
+currentChat = newChat;
 
-    saveChats();
+saveChats();
 
-    renderHistory();
-    renderChat();
+renderHistory();
+renderChat();
+
 }
 
-
-/* =========================
-   HISTORY
-========================= */
+/* =========================================================
+HISTORY
+========================================================= */
 
 function renderHistory() {
 
-    if (!chatHistory) return;
+if (!chatHistory) return;
 
-    chatHistory.innerHTML = "";
+chatHistory.innerHTML = "";
 
-    for (const item of chats) {
+for (const item of chats) {
 
-        const row =
-            document.createElement("div");
+    const row =
+        document.createElement("div");
 
-        row.className =
-            "history-item" +
-            (
+    row.className =
+        "history-item" +
+        (
+            currentChat &&
+            currentChat.id === item.id
+                ? " active"
+                : ""
+        );
+
+
+    const title =
+        document.createElement("span");
+
+    title.textContent =
+        item.title || "New Chat";
+
+
+    const del =
+        document.createElement("button");
+
+    del.type = "button";
+
+    del.textContent = "×";
+
+    del.setAttribute(
+        "aria-label",
+        "Delete chat"
+    );
+
+
+    del.addEventListener(
+        "click",
+        function(event) {
+
+            event.stopPropagation();
+
+            chats =
+                chats.filter(
+                    c => c.id !== item.id
+                );
+
+
+            if (
                 currentChat &&
                 currentChat.id === item.id
-                    ? " active"
-                    : ""
-            );
-
-        const title =
-            document.createElement("span");
-
-        title.textContent =
-            item.title || "New Chat";
-
-
-        const del =
-            document.createElement("button");
-
-        del.type = "button";
-        del.textContent = "×";
-        del.setAttribute(
-            "aria-label",
-            "Delete chat"
-        );
-
-
-        del.addEventListener(
-            "click",
-            event => {
-
-                event.stopPropagation();
-
-                if (isGenerating) {
-                    return;
-                }
-
-                chats =
-                    chats.filter(
-                        c => c.id !== item.id
-                    );
-
-                if (
-                    currentChat &&
-                    currentChat.id === item.id
-                ) {
-
-                    currentChat =
-                        chats[0] || null;
-                }
-
-                saveChats();
-
-                renderHistory();
-                renderChat();
+            ) {
+                currentChat =
+                    chats.length
+                        ? chats[0]
+                        : null;
             }
-        );
 
 
-        row.appendChild(title);
-        row.appendChild(del);
+            saveChats();
 
-
-        row.addEventListener(
-            "click",
-            () => {
-
-                if (isGenerating) {
-                    return;
-                }
-
-                currentChat = item;
-
-                renderHistory();
-                renderChat();
-
-                if (sidebar) {
-                    sidebar.classList.remove("open");
-                }
-            }
-        );
-
-
-        chatHistory.appendChild(row);
-    }
-}
-
-
-/* =========================
-   HTML ESCAPE
-========================= */
-
-function escapeHTML(text) {
-
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-/* =========================
-   MARKDOWN
-========================= */
-
-function renderMarkdown(text) {
-
-    if (!text) {
-        return "";
-    }
-
-    const codeBlocks = [];
-
-    let source =
-        String(text).replace(
-            /```([a-zA-Z0-9_+#.-]*)\s*\n?([\s\S]*?)```/g,
-            function (_, language, code) {
-
-                const index =
-                    codeBlocks.length;
-
-                codeBlocks.push({
-                    language:
-                        language || "code",
-
-                    code:
-                        code.replace(/\n$/, "")
-                });
-
-                return `NEXORA_CODE_BLOCK_${index}`;
-            }
-        );
-
-
-    source =
-        escapeHTML(source);
-
-
-    /* Inline code */
-
-    source =
-        source.replace(
-            /`([^`\n]+)`/g,
-            "<code>$1</code>"
-        );
-
-
-    /* Headings */
-
-    source =
-        source.replace(
-            /^### (.+)$/gm,
-            "<h4>$1</h4>"
-        );
-
-    source =
-        source.replace(
-            /^## (.+)$/gm,
-            "<h3>$1</h3>"
-        );
-
-    source =
-        source.replace(
-            /^# (.+)$/gm,
-            "<h2>$1</h2>"
-        );
-
-
-    /* Bold */
-
-    source =
-        source.replace(
-            /\*\*(.+?)\*\*/g,
-            "<strong>$1</strong>"
-        );
-
-
-    /* Italic */
-
-    source =
-        source.replace(
-            /(^|[^\*])\*([^*\n]+)\*(?!\*)/g,
-            "$1<em>$2</em>"
-        );
-
-
-    /* Unordered lists */
-
-    source =
-        source.replace(
-            /^\s*[-*] (.+)$/gm,
-            "<li>$1</li>"
-        );
-
-    source =
-        source.replace(
-            /(<li>.*?<\/li>\s*)+/g,
-            "<ul>$&</ul>"
-        );
-
-
-    /* Ordered lists */
-
-    source =
-        source.replace(
-            /^\s*\d+\. (.+)$/gm,
-            "<li>$1</li>"
-        );
-
-
-    /* New lines */
-
-    source =
-        source.replace(
-            /\n/g,
-            "<br>"
-        );
-
-
-    /* Restore code blocks */
-
-    codeBlocks.forEach(
-        (block, index) => {
-
-            const code =
-                escapeHTML(block.code);
-
-            const codeHTML = `
-                <div class="nexora-code-wrapper">
-
-                    <div class="nexora-code-header">
-
-                        <span class="nexora-code-language">
-                            ${escapeHTML(block.language)}
-                        </span>
-
-                        <button
-                            class="nexora-copy-btn"
-                            type="button"
-                            data-code="${encodeURIComponent(block.code)}"
-                        >
-                            Copy
-                        </button>
-
-                    </div>
-
-                    <pre><code>${code}</code></pre>
-
-                </div>
-            `;
-
-            source =
-                source.replace(
-                    `NEXORA_CODE_BLOCK_${index}`,
-                    codeHTML
-                );
+            renderHistory();
+            renderChat();
         }
     );
 
 
-    return source;
+    row.appendChild(title);
+    row.appendChild(del);
+
+
+    row.addEventListener(
+        "click",
+        function() {
+
+            if (isGenerating) return;
+
+            currentChat = item;
+
+            renderHistory();
+            renderChat();
+
+            if (sidebar) {
+                sidebar.classList.remove(
+                    "open"
+                );
+            }
+        }
+    );
+
+
+    chatHistory.appendChild(row);
 }
 
+}
 
-/* =========================
-   COPY
-========================= */
+/* =========================================================
+HTML ESCAPE
+========================================================= */
 
-async function copyText(text) {
+function escapeHTML(text) {
 
-    /* Modern clipboard */
+return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 
-    try {
+}
 
-        if (
-            navigator.clipboard &&
-            window.isSecureContext
-        ) {
+/* =========================================================
+MARKDOWN
+========================================================= */
 
-            await navigator.clipboard.writeText(
-                text
+function renderMarkdown(text) {
+
+if (!text) return "";
+
+const codeBlocks = [];
+
+let source = String(text);
+
+
+/*
+ * Extract fenced code blocks first.
+ */
+
+source = source.replace(
+    /```([a-zA-Z0-9_+#.-]*)\n?([\s\S]*?)```/g,
+    function(_, language, code) {
+
+        const index =
+            codeBlocks.length;
+
+        codeBlocks.push({
+            language:
+                language || "Code",
+
+            code:
+                code.replace(/\n$/, "")
+        });
+
+        return (
+            `@@NEXORA_CODE_${index}@@`
+        );
+    }
+);
+
+
+source = escapeHTML(source);
+
+
+/*
+ * Inline code
+ */
+
+source = source.replace(
+    /`([^`\n]+)`/g,
+    "<code>$1</code>"
+);
+
+
+/*
+ * Bold
+ */
+
+source = source.replace(
+    /\*\*(.+?)\*\*/g,
+    "<strong>$1</strong>"
+);
+
+
+/*
+ * Italic
+ */
+
+source = source.replace(
+    /(^|[^\*])\*([^*\n]+)\*(?!\*)/g,
+    "$1<em>$2</em>"
+);
+
+
+/*
+ * Headings
+ */
+
+source = source.replace(
+    /^### (.+)$/gm,
+    "<h4>$1</h4>"
+);
+
+source = source.replace(
+    /^## (.+)$/gm,
+    "<h3>$1</h3>"
+);
+
+source = source.replace(
+    /^# (.+)$/gm,
+    "<h2>$1</h2>"
+);
+
+
+/*
+ * Unordered lists
+ */
+
+source = source.replace(
+    /^\s*[-*] (.+)$/gm,
+    "<li>$1</li>"
+);
+
+source = source.replace(
+    /(<li>.*<\/li>(?:<br>)?)+/g,
+    "<ul>$&</ul>"
+);
+
+
+/*
+ * Ordered lists
+ */
+
+source = source.replace(
+    /^\s*\d+\. (.+)$/gm,
+    "<li>$1</li>"
+);
+
+
+/*
+ * New lines
+ */
+
+source = source.replace(
+    /\n/g,
+    "<br>"
+);
+
+
+/*
+ * Restore code blocks.
+ */
+
+codeBlocks.forEach(
+    function(block, index) {
+
+        const codeHTML = `
+            <div class="nexora-code-wrapper">
+
+                <div class="nexora-code-header">
+
+                    <span class="nexora-code-language">
+                        ${escapeHTML(block.language)}
+                    </span>
+
+                    <button
+                        class="nexora-copy-btn"
+                        type="button"
+                        aria-label="Copy code"
+                    >
+                        Copy
+                    </button>
+
+                </div>
+
+                <pre><code>${escapeHTML(
+                    block.code
+                )}</code></pre>
+
+            </div>
+        `;
+
+
+        source =
+            source.replace(
+                `@@NEXORA_CODE_${index}@@`,
+                codeHTML
             );
+    }
+);
 
-            return true;
-        }
 
-    } catch (error) {
+return source;
 
-        console.warn(
-            "Clipboard API failed:",
-            error
+}
+
+/* =========================================================
+COPY CODE
+========================================================= */
+
+async function copyCode(button, code) {
+
+try {
+
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+
+        await navigator.clipboard.writeText(
+            code
+        );
+
+    } else {
+
+        throw new Error(
+            "Clipboard API unavailable"
         );
     }
 
 
-    /* Fallback */
+    button.textContent = "Copied ✓";
+
+
+    setTimeout(
+        function() {
+            button.textContent = "Copy";
+        },
+        1500
+    );
+
+} catch {
 
     try {
 
         const textarea =
-            document.createElement("textarea");
+            document.createElement(
+                "textarea"
+            );
 
-        textarea.value = text;
-
-        textarea.setAttribute(
-            "readonly",
-            ""
-        );
+        textarea.value = code;
 
         textarea.style.position =
             "fixed";
 
-        textarea.style.left =
-            "-9999px";
-
-        textarea.style.top =
-            "0";
+        textarea.style.left = "-9999px";
 
         document.body.appendChild(
             textarea
@@ -423,272 +429,193 @@ async function copyText(text) {
         textarea.focus();
         textarea.select();
 
-        const success =
-            document.execCommand("copy");
+        document.execCommand("copy");
 
         textarea.remove();
 
-        return success;
+        button.textContent =
+            "Copied ✓";
 
-    } catch (error) {
-
-        console.error(
-            "Copy failed:",
-            error
+        setTimeout(
+            function() {
+                button.textContent =
+                    "Copy";
+            },
+            1500
         );
 
-        return false;
+    } catch {
+
+        button.textContent =
+            "Copy failed";
+
+        setTimeout(
+            function() {
+                button.textContent =
+                    "Copy";
+            },
+            1500
+        );
     }
 }
 
+}
 
-/* =========================
-   COPY BUTTON
-   EVENT DELEGATION
-========================= */
+/* =========================================================
+COPY BUTTON EVENT DELEGATION
+========================================================= */
 
-chat.addEventListener(
-    "click",
-    async event => {
+function attachCopyButtons(container) {
+
+if (!container) return;
+
+/*
+ * Remove old handler if one exists.
+ */
+
+if (
+    container._nexoraCopyHandler
+) {
+
+    container.removeEventListener(
+        "click",
+        container._nexoraCopyHandler
+    );
+}
+
+
+const handler =
+    function(event) {
 
         const button =
             event.target.closest(
                 ".nexora-copy-btn"
             );
 
-        if (!button) {
-            return;
-        }
+        if (!button) return;
 
         event.preventDefault();
-        event.stopPropagation();
 
+        const wrapper =
+            button.closest(
+                ".nexora-code-wrapper"
+            );
 
-        let code = "";
+        if (!wrapper) return;
 
+        const code =
+            wrapper.querySelector(
+                "pre code"
+            );
 
-        /* Get code directly from data */
+        if (!code) return;
 
-        if (button.dataset.code) {
-
-            try {
-
-                code =
-                    decodeURIComponent(
-                        button.dataset.code
-                    );
-
-            } catch {
-
-                code =
-                    button.dataset.code;
-            }
-        }
-
-
-        /* Fallback to code element */
-
-        if (!code) {
-
-            const wrapper =
-                button.closest(
-                    ".nexora-code-wrapper"
-                );
-
-            const codeElement =
-                wrapper?.querySelector(
-                    "pre code"
-                );
-
-            if (codeElement) {
-                code =
-                    codeElement.textContent;
-            }
-        }
-
-
-        if (!code) {
-            return;
-        }
-
-
-        const originalText =
-            button.textContent;
-
-
-        button.disabled = true;
-
-        const success =
-            await copyText(code);
-
-
-        if (success) {
-
-            button.textContent =
-                "Copied ✓";
-
-        } else {
-
-            button.textContent =
-                "Copy failed";
-        }
-
-
-        setTimeout(
-            () => {
-
-                button.textContent =
-                    originalText || "Copy";
-
-                button.disabled = false;
-
-            },
-            1500
+        copyCode(
+            button,
+            code.textContent
         );
-    }
+    };
+
+
+container.addEventListener(
+    "click",
+    handler
 );
 
+container._nexoraCopyHandler =
+    handler;
 
-/* =========================
-   RENDER CHAT
-========================= */
+}
+
+/* =========================================================
+RENDER CHAT
+========================================================= */
 
 function renderChat() {
 
-    chat.innerHTML = "";
+if (!chat) return;
+
+chat.innerHTML = "";
 
 
-    if (
-        !currentChat ||
-        !Array.isArray(currentChat.messages) ||
-        currentChat.messages.length === 0
-    ) {
+if (
+    !currentChat ||
+    !currentChat.messages ||
+    currentChat.messages.length === 0
+) {
 
-        chat.innerHTML = `
-            <div class="welcome">
+    chat.innerHTML = `
+        <div class="welcome">
 
-                <div class="big-logo">
-                    N
-                </div>
-
-                <h2>
-                    Welcome to NEXORA
-                </h2>
-
-                <p>
-                    One interface. Every intelligence.
-                </p>
-
+            <div class="big-logo">
+                N
             </div>
-        `;
 
-        return;
-    }
+            <h2>
+                Welcome to NEXORA
+            </h2>
 
+            <p>
+                One interface. Every intelligence.
+            </p>
 
-    for (
-        const msg
-        of currentChat.messages
-    ) {
+        </div>
+    `;
 
-        if (
-            msg.role === "user"
-        ) {
-
-            addMessage(
-                "user",
-                msg.content
-            );
-
-        } else {
-
-            addMessage(
-                "ai",
-                msg.content,
-                msg.model
-            );
-        }
-    }
+    return;
 }
 
 
-/* =========================
-   MESSAGE UI
-========================= */
+for (
+    const msg of currentChat.messages
+) {
+
+    if (msg.role === "user") {
+
+        addMessage(
+            "user",
+            msg.content
+        );
+
+    } else if (
+        msg.role === "assistant"
+    ) {
+
+        addMessage(
+            "ai",
+            msg.content,
+            msg.model
+        );
+    }
+}
+
+}
+
+/* =========================================================
+MESSAGE UI
+========================================================= */
 
 function addMessage(
-    type,
-    text = "",
-    modelName = ""
+type,
+text = "",
+modelName = ""
 ) {
 
-    const box =
-        document.createElement("div");
+const box =
+    document.createElement(
+        "div"
+    );
 
-    box.className =
-        `message ${type}`;
-
-
-    if (modelName) {
-
-        const tag =
-            document.createElement("div");
-
-        tag.className =
-            "model-tag";
-
-        tag.textContent =
-            modelName;
-
-        box.appendChild(tag);
-    }
+box.className =
+    `message ${type}`;
 
 
-    const content =
-        document.createElement("div");
-
-    content.className =
-        "response-content";
-
-
-    if (type === "ai") {
-
-        content.innerHTML =
-            renderMarkdown(text);
-
-    } else {
-
-        content.textContent =
-            text;
-    }
-
-
-    box.appendChild(content);
-
-    chat.appendChild(box);
-
-
-    return content;
-}
-
-
-/* =========================
-   THINKING UI
-========================= */
-
-function createThinkingMessage(
-    modelName
-) {
-
-    const box =
-        document.createElement("div");
-
-    box.className =
-        "message ai";
-
+if (modelName) {
 
     const tag =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     tag.className =
         "model-tag";
@@ -696,484 +623,681 @@ function createThinkingMessage(
     tag.textContent =
         modelName;
 
-
-    const thinking =
-        document.createElement("div");
-
-    thinking.className =
-        "thinking";
-
-    thinking.innerHTML = `
-        <div class="thinking-dots">
-
-            <span></span>
-            <span></span>
-            <span></span>
-
-        </div>
-
-        <span>
-            Thinking…
-        </span>
-    `;
-
-
-    const content =
-        document.createElement("div");
-
-    content.className =
-        "response-content";
-
-
     box.appendChild(tag);
-    box.appendChild(thinking);
-    box.appendChild(content);
-
-    chat.appendChild(box);
-
-
-    return {
-        box,
-        thinking,
-        content
-    };
 }
 
 
-/* =========================
-   GENERATING STATE
-========================= */
+const content =
+    document.createElement(
+        "div"
+    );
 
-function setGeneratingState(
-    generating
+content.className =
+    "response-content";
+
+
+if (type === "ai") {
+
+    content.innerHTML =
+        renderMarkdown(text);
+
+    attachCopyButtons(content);
+
+} else {
+
+    content.textContent =
+        text;
+}
+
+
+box.appendChild(content);
+
+chat.appendChild(box);
+
+return content;
+
+}
+
+/* =========================================================
+THINKING MESSAGE
+========================================================= */
+
+function createThinkingMessage(
+modelName
 ) {
 
-    isGenerating =
+const box =
+    document.createElement(
+        "div"
+    );
+
+box.className =
+    "message ai";
+
+
+const tag =
+    document.createElement(
+        "div"
+    );
+
+tag.className =
+    "model-tag";
+
+tag.textContent =
+    modelName;
+
+
+const thinking =
+    document.createElement(
+        "div"
+    );
+
+thinking.className =
+    "thinking";
+
+thinking.innerHTML = `
+    <div class="thinking-dots">
+
+        <span></span>
+        <span></span>
+        <span></span>
+
+    </div>
+
+    <span>
+        Thinking…
+    </span>
+`;
+
+
+const content =
+    document.createElement(
+        "div"
+    );
+
+content.className =
+    "response-content";
+
+
+box.appendChild(tag);
+box.appendChild(thinking);
+box.appendChild(content);
+
+chat.appendChild(box);
+
+
+return {
+    box,
+    thinking,
+    content
+};
+
+}
+
+/* =========================================================
+GENERATION STATE
+========================================================= */
+
+function setGeneratingState(
+generating
+) {
+
+isGenerating =
+    generating;
+
+
+if (send) {
+
+    send.disabled =
         generating;
 
-
-    if (send) {
-
-        send.disabled =
-            generating;
-
-        send.hidden =
-            generating;
-    }
-
-
-    if (stopBtn) {
-
-        stopBtn.hidden =
-            !generating;
-
-        stopBtn.disabled =
-            false;
-    }
-
-
-    if (message) {
-
-        message.disabled =
-            false;
-    }
+    send.hidden =
+        generating;
 }
 
-
-/* =========================
-   STOP GENERATION
-========================= */
-
-function stopGeneration() {
-
-    if (!isGenerating) {
-        return;
-    }
-
-
-    /* Abort browser request */
-
-    if (activeController) {
-
-        try {
-            activeController.abort();
-        } catch {}
-    }
-
-
-    activeController = null;
-
-
-    setGeneratingState(false);
-
-
-    /* Mark current UI */
-
-    const thinking =
-        chat.querySelector(
-            ".message.ai:last-child .thinking"
-        );
-
-    if (thinking) {
-
-        thinking.innerHTML =
-            "<span>⏹ Generation stopped</span>";
-    }
-
-
-    saveChats();
-}
-
-
-/* =========================
-   STOP BUTTON
-========================= */
 
 if (stopBtn) {
 
-    stopBtn.addEventListener(
-        "click",
-        event => {
+    stopBtn.hidden =
+        !generating;
+}
 
-            event.preventDefault();
+}
 
-            stopGeneration();
-        }
-    );
+/* =========================================================
+STOP GENERATION
+========================================================= */
+
+function stopGeneration() {
+
+if (
+    !isGenerating ||
+    !activeController
+) {
+    return;
 }
 
 
-/* =========================
-   SEND MESSAGE
-========================= */
+activeController.abort();
 
-async function sendMessage() {
+activeController = null;
 
-    const text =
-        message.value.trim();
+setGeneratingState(false);
 
-    const selectedModel =
-        model.value;
+}
+
+/* =========================================================
+LOAD MODELS
+========================================================= */
+
+async function loadModels() {
+
+if (!model) return;
 
 
-    if (
-        !text ||
-        !selectedModel ||
-        isGenerating
-    ) {
+model.innerHTML = `
+    <option value="">
+        Loading models...
+    </option>
+`;
+
+
+try {
+
+    const response =
+        await fetch(
+            "/api/models",
+            {
+                method: "GET",
+                cache: "no-store"
+            }
+        );
+
+
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {
+        data = {};
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error ||
+            `HTTP ${response.status}`
+        );
+    }
+
+
+    const models =
+        Array.isArray(data.models)
+            ? data.models
+            : [];
+
+
+    if (models.length === 0) {
+
+        model.innerHTML = `
+            <option value="">
+                No models available
+            </option>
+        `;
+
+        console.error(
+            "NEXORA: API returned zero models."
+        );
+
         return;
     }
 
 
-    if (!currentChat) {
-        createChat();
+    model.innerHTML = "";
+
+
+    /*
+     * Group models by provider.
+     */
+
+    const groups = {};
+
+
+    for (
+        const item of models
+    ) {
+
+        if (!item || !item.id) {
+            continue;
+        }
+
+
+        const provider =
+            item.provider ||
+            "Other";
+
+
+        if (!groups[provider]) {
+            groups[provider] = [];
+        }
+
+
+        groups[provider].push(item);
     }
 
 
-    const welcome =
-        document.querySelector(
-            ".welcome"
+    /*
+     * Create optgroups.
+     */
+
+    const providerOrder = [
+        "OpenAI",
+        "Anthropic",
+        "Google",
+        "Meta",
+        "Mistral",
+        "DeepSeek",
+        "Qwen",
+        "xAI",
+        "Other"
+    ];
+
+
+    const providers =
+        Object.keys(groups).sort(
+            function(a, b) {
+
+                const ai =
+                    providerOrder.indexOf(a);
+
+                const bi =
+                    providerOrder.indexOf(b);
+
+                if (ai === -1 && bi === -1) {
+                    return a.localeCompare(b);
+                }
+
+                if (ai === -1) return 1;
+
+                if (bi === -1) return -1;
+
+                return ai - bi;
+            }
         );
 
-    if (welcome) {
-        welcome.remove();
+
+    for (
+        const provider of providers
+    ) {
+
+        const items =
+            groups[provider];
+
+
+        const group =
+            document.createElement(
+                "optgroup"
+            );
+
+        group.label =
+            provider;
+
+
+        items.sort(
+            function(a, b) {
+
+                return String(
+                    a.name || a.id
+                ).localeCompare(
+                    String(
+                        b.name || b.id
+                    )
+                );
+            }
+        );
+
+
+        for (
+            const item of items
+        ) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                item.id;
+
+
+            option.textContent =
+                item.name ||
+                item.id;
+
+
+            option.dataset.type =
+                item.type ||
+                "chat";
+
+
+            option.dataset.provider =
+                provider;
+
+
+            group.appendChild(
+                option
+            );
+        }
+
+
+        model.appendChild(group);
     }
 
 
-    const modelName =
-        model.options[
-            model.selectedIndex
-        ]?.text ||
-        selectedModel;
+    /*
+     * Restore previously selected model.
+     */
+
+    const savedModel =
+        localStorage.getItem(
+            "nexora_model"
+        );
 
 
-    /* User message */
+    if (
+        savedModel &&
+        Array.from(
+            model.options
+        ).some(
+            option =>
+                option.value ===
+                savedModel
+        )
+    ) {
 
-    addMessage(
-        "user",
-        text
+        model.value =
+            savedModel;
+
+    } else if (
+        model.options.length > 0
+    ) {
+
+        model.selectedIndex = 0;
+    }
+
+
+    console.log(
+        `NEXORA: Loaded ${models.length} models.`
+    );
+
+} catch (error) {
+
+    console.error(
+        "NEXORA model loading error:",
+        error
     );
 
 
-    currentChat.messages.push({
-        role: "user",
-        content: text
-    });
+    model.innerHTML = `
+        <option value="">
+            Model loading failed
+        </option>
+    `;
+}
+
+}
+
+/* =========================================================
+SEND MESSAGE
+========================================================= */
+
+async function sendMessage() {
+
+const text =
+    message
+        ? message.value.trim()
+        : "";
 
 
-    /* Chat title */
-
-    if (
-        currentChat.title ===
-        "New Chat"
-    ) {
-
-        currentChat.title =
-            text.length > 32
-                ? text.substring(0, 32) + "…"
-                : text;
-
-        renderHistory();
-    }
+const selectedModel =
+    model
+        ? model.value
+        : "";
 
 
-    saveChats();
+if (
+    !text ||
+    !selectedModel ||
+    isGenerating
+) {
+    return;
+}
 
 
-    /* Thinking UI */
+if (!currentChat) {
+    createChat();
+}
 
-    const thinkingUI =
-        createThinkingMessage(
-            modelName
+
+const welcome =
+    document.querySelector(
+        ".welcome"
+    );
+
+
+if (welcome) {
+    welcome.remove();
+}
+
+
+const selectedOption =
+    model.options[
+        model.selectedIndex
+    ];
+
+
+const modelName =
+    selectedOption
+        ? selectedOption.textContent
+        : selectedModel;
+
+
+addMessage(
+    "user",
+    text
+);
+
+
+currentChat.messages.push({
+    role: "user",
+    content: text
+});
+
+
+if (
+    currentChat.title ===
+    "New Chat"
+) {
+
+    currentChat.title =
+        text.length > 32
+            ? text.substring(
+                0,
+                32
+            ) + "…"
+            : text;
+
+    renderHistory();
+}
+
+
+saveChats();
+
+
+const thinkingUI =
+    createThinkingMessage(
+        modelName
+    );
+
+
+message.value = "";
+
+message.style.height =
+    "auto";
+
+
+setGeneratingState(true);
+
+
+activeController =
+    new AbortController();
+
+
+try {
+
+    const apiMessages =
+        currentChat.messages.map(
+            function(msg) {
+
+                return {
+                    role: msg.role,
+                    content: msg.content
+                };
+            }
         );
 
 
-    message.value = "";
+    const response =
+        await fetch(
+            "/api/chat",
+            {
+                method: "POST",
 
-    message.style.height =
-        "auto";
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    model:
+                        selectedModel,
+
+                    messages:
+                        apiMessages
+                }),
+
+                signal:
+                    activeController.signal
+            }
+        );
 
 
-    setGeneratingState(true);
+    if (!response.ok) {
+
+        let data = {};
+
+        try {
+            data =
+                await response.json();
+        } catch {}
 
 
-    activeController =
-        new AbortController();
+        throw new Error(
+            data.error ||
+            `Request failed: HTTP ${response.status}`
+        );
+    }
 
+
+    if (!response.body) {
+
+        throw new Error(
+            "The server returned no response stream."
+        );
+    }
+
+
+    const reader =
+        response.body.getReader();
+
+
+    const decoder =
+        new TextDecoder();
+
+
+    let buffer = "";
 
     let fullResponse = "";
 
 
-    try {
+    while (true) {
 
-        const apiMessages =
-            currentChat.messages.map(
-                msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })
-            );
+        const result =
+            await reader.read();
 
 
-        const response =
-            await fetch(
-                "/api/chat",
+        const value =
+            result.value;
+
+        const done =
+            result.done;
+
+
+        if (done) break;
+
+
+        buffer +=
+            decoder.decode(
+                value,
                 {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            model:
-                                selectedModel,
-
-                            messages:
-                                apiMessages
-                        }),
-
-                    signal:
-                        activeController.signal
+                    stream: true
                 }
             );
 
 
-        if (!response.ok) {
-
-            let data = {};
-
-            try {
-                data =
-                    await response.json();
-            } catch {}
+        const lines =
+            buffer.split("\n");
 
 
-            throw new Error(
-                data.error ||
-                `Request failed: HTTP ${response.status}`
-            );
-        }
+        buffer =
+            lines.pop();
 
 
-        if (!response.body) {
+        for (
+            const line of lines
+        ) {
 
-            throw new Error(
-                "The server returned no response stream."
-            );
-        }
-
-
-        const reader =
-            response.body.getReader();
-
-        const decoder =
-            new TextDecoder("utf-8");
-
-
-        let buffer = "";
-
-
-        while (true) {
-
-            const {
-                value,
-                done
-            } =
-                await reader.read();
-
-
-            if (done) {
-                break;
+            if (
+                !line.startsWith(
+                    "data:"
+                )
+            ) {
+                continue;
             }
 
 
-            buffer +=
-                decoder.decode(
-                    value,
-                    {
-                        stream: true
-                    }
-                );
+            const raw =
+                line
+                    .slice(5)
+                    .trim();
 
 
-            const lines =
-                buffer.split(/\r?\n/);
-
-
-            buffer =
-                lines.pop() || "";
-
-
-            for (
-                const line
-                of lines
+            if (
+                !raw ||
+                raw === "[DONE]"
             ) {
-
-                if (
-                    !line.startsWith(
-                        "data:"
-                    )
-                ) {
-                    continue;
-                }
+                continue;
+            }
 
 
-                const raw =
-                    line
-                        .slice(5)
-                        .trim();
+            try {
 
-
-                if (
-                    !raw ||
-                    raw === "[DONE]"
-                ) {
-                    continue;
-                }
-
-
-                let data;
-
-
-                try {
-
-                    data =
-                        JSON.parse(raw);
-
-                } catch {
-
-                    continue;
-                }
+                const data =
+                    JSON.parse(raw);
 
 
                 if (data.error) {
 
-                    throw new Error(
-                        data.error
-                    );
-                }
-
-
-                if (
-                    data.content
-                ) {
-
-                    fullResponse +=
-                        data.content;
-
-
-                    thinkingUI
-                        .thinking
-                        .innerHTML =
-                        "<span>✨ Generating response…</span>";
-
-
-                    thinkingUI
-                        .content
-                        .innerHTML =
-                        renderMarkdown(
-                            fullResponse
-                        );
-
-
-                    chat.scrollTop =
-                        chat.scrollHeight;
-                }
-            }
-        }
-
-
-        /* Save response */
-
-        if (
-            fullResponse.trim()
-        ) {
-
-            thinkingUI
-                .thinking
-                .innerHTML =
-                "<span>✓ Response generated</span>";
-
-
-            currentChat.messages.push({
-                role: "assistant",
-                content:
-                    fullResponse,
-                model:
-                    modelName
-            });
-
-
-            saveChats();
-
-        } else {
-
-            thinkingUI
-                .thinking
-                .innerHTML =
-                "<span>⚠️ No response received</span>";
-        }
-
-
-    } catch (error) {
-
-        /* User pressed Stop */
-
-        if (
-            error.name ===
-            "AbortError"
-        ) {
-
-            thinkingUI
-                .thinking
-                .innerHTML =
-                "<span>⏹ Generation stopped</span>";
-
-
-            /*
-             * Save partial response if
-             * something was already generated.
-      
+                    throw n
