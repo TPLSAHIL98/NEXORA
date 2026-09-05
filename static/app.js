@@ -1,252 +1,362 @@
-const messageInput = document.getElementById("message");
-const sendButton = document.getElementById("send");
-
 const chat = document.getElementById("chat");
+const messageInput = document.getElementById("message");
+const chatForm = document.getElementById("chatForm");
+const sendButton = document.getElementById("sendButton");
+const newChatButton = document.getElementById("newChat");
+const selectedModelText = document.getElementById("selectedModel");
 const welcome = document.getElementById("welcome");
 
-const menuBtn = document.getElementById("menuBtn");
-const closeSidebar = document.getElementById("closeSidebar");
-
-const sidebar = document.getElementById("sidebar");
-const newChat = document.getElementById("newChat");
+let selectedProvider = "gpt";
 
 let messages = [];
 
+const modelNames = {
+    gpt: "ChatGPT · GPT-6 Astra",
+    claude: "Claude · Fable 5",
+    gemini: "Gemini · 3.7 Flash"
+};
 
-/* =========================
-   SEND MESSAGE
-========================= */
 
-async function sendMessage() {
+/* MODEL SELECTION */
 
-    const text = messageInput.value.trim();
+document.querySelectorAll(".model-card").forEach(button => {
 
-    if (!text) {
-        return;
-    }
+    button.addEventListener("click", () => {
 
-    // Hide welcome screen
-    if (welcome) {
-        welcome.style.display = "none";
-    }
+        document
+            .querySelectorAll(".model-card")
+            .forEach(card => {
+                card.classList.remove("active");
+            });
 
-    // Show user message
-    addMessage("user", text);
+        button.classList.add("active");
 
-    // Add to conversation
-    messages.push({
-        role: "user",
-        content: text
+        selectedProvider =
+            button.dataset.model;
+
+        selectedModelText.textContent =
+            modelNames[selectedProvider];
+
     });
-
-    // Clear input
-    messageInput.value = "";
-
-    resizeTextarea();
-
-    // Disable button
-    sendButton.disabled = true;
-
-    // Loading message
-    const loading = addMessage("assistant", "Thinking...");
-
-    try {
-
-        const response = await fetch("/api/chat", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                messages: messages
-            })
-
-        });
-
-
-        const data = await response.json();
-
-
-        // Remove loading message
-        loading.remove();
-
-
-        if (!response.ok) {
-
-            const errorText =
-                data.error ||
-                "Something went wrong.";
-
-            addMessage(
-                "assistant",
-                "❌ " + errorText
-            );
-
-            if (data.details) {
-                console.error("API DETAILS:", data.details);
-            }
-
-            return;
-        }
-
-
-        const reply = data.reply || "No response received.";
-
-        addMessage("assistant", reply);
-
-
-        // Save assistant message
-        messages.push({
-            role: "assistant",
-            content: reply
-        });
-
-
-    } catch (error) {
-
-        loading.remove();
-
-        console.error(error);
-
-        addMessage(
-            "assistant",
-            "❌ Connection error. Please try again."
-        );
-
-    } finally {
-
-        sendButton.disabled = false;
-
-        messageInput.focus();
-
-    }
-}
-
-
-/* =========================
-   ADD MESSAGE
-========================= */
-
-function addMessage(role, text) {
-
-    const wrapper = document.createElement("div");
-
-    wrapper.className = "message " + role;
-
-
-    const bubble = document.createElement("div");
-
-    bubble.className = "bubble";
-
-    bubble.textContent = text;
-
-
-    wrapper.appendChild(bubble);
-
-    chat.appendChild(wrapper);
-
-
-    // Scroll to bottom
-    chat.scrollTop = chat.scrollHeight;
-
-
-    return wrapper;
-}
-
-
-/* =========================
-   ENTER TO SEND
-========================= */
-
-messageInput.addEventListener("keydown", function(event) {
-
-    if (event.key === "Enter" && !event.shiftKey) {
-
-        event.preventDefault();
-
-        sendMessage();
-
-    }
 
 });
 
 
-/* =========================
-   SEND BUTTON
-========================= */
+/* SUGGESTIONS */
 
-sendButton.addEventListener("click", sendMessage);
+document.querySelectorAll(".suggestions button")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            messageInput.value =
+                button.dataset.prompt;
+
+            messageInput.focus();
+
+        });
+
+    });
 
 
-/* =========================
-   AUTO RESIZE TEXTAREA
-========================= */
+/* AUTO RESIZE */
 
-function resizeTextarea() {
+messageInput.addEventListener("input", () => {
 
     messageInput.style.height = "auto";
 
     messageInput.style.height =
-        Math.min(messageInput.scrollHeight, 160) + "px";
+        Math.min(
+            messageInput.scrollHeight,
+            180
+        ) + "px";
+
+});
+
+
+/* NEW CHAT */
+
+newChatButton.addEventListener("click", () => {
+
+    messages = [];
+
+    chat.innerHTML = "";
+
+    chat.appendChild(
+        createWelcome()
+    );
+
+});
+
+
+function createWelcome() {
+
+    const element =
+        document.createElement("div");
+
+    element.className = "welcome";
+
+    element.innerHTML = `
+        <div class="nexora-logo">N</div>
+
+        <h1>
+            What can I help you build?
+        </h1>
+
+        <p>
+            Ask NEXORA anything.
+        </p>
+    `;
+
+    return element;
+}
+
+
+/* MESSAGE UI */
+
+function addMessage(role, text) {
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        `message ${role}`;
+
+    const avatar =
+        document.createElement("div");
+
+    avatar.className = "avatar";
+
+    avatar.textContent =
+        role === "user"
+            ? "YOU"
+            : "N";
+
+    const content =
+        document.createElement("div");
+
+    content.className =
+        "message-content";
+
+    content.textContent = text;
+
+    row.appendChild(avatar);
+    row.appendChild(content);
+
+    chat.appendChild(row);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+    return content;
+}
+
+
+/* STREAM PARSER */
+
+async function readStream(response, outputElement) {
+
+    const reader =
+        response.body.getReader();
+
+    const decoder =
+        new TextDecoder();
+
+    let buffer = "";
+
+    while (true) {
+
+        const { value, done } =
+            await reader.read();
+
+        if (done) break;
+
+        buffer +=
+            decoder.decode(
+                value,
+                { stream: true }
+            );
+
+        const lines =
+            buffer.split("\n");
+
+        buffer =
+            lines.pop() || "";
+
+        for (const line of lines) {
+
+            const trimmed =
+                line.trim();
+
+            if (!trimmed) continue;
+
+            if (!trimmed.startsWith("data:"))
+                continue;
+
+            const data =
+                trimmed.slice(5).trim();
+
+            if (data === "[DONE]")
+                continue;
+
+            try {
+
+                const json =
+                    JSON.parse(data);
+
+                const delta =
+                    json.choices?.[0]?.delta?.content;
+
+                if (delta) {
+
+                    outputElement.textContent +=
+                        delta;
+
+                    chat.scrollTop =
+                        chat.scrollHeight;
+
+                }
+
+            } catch {
+                // Ignore incomplete SSE JSON.
+            }
+
+        }
+
+    }
 
 }
 
 
-messageInput.addEventListener(
-    "input",
-    resizeTextarea
+/* SEND */
+
+chatForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+        const text =
+            messageInput.value.trim();
+
+        if (!text) return;
+
+        messageInput.value = "";
+        messageInput.style.height = "auto";
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+        messages.push({
+            role: "user",
+            content: text
+        });
+
+        addMessage(
+            "user",
+            text
+        );
+
+        sendButton.disabled = true;
+
+        const assistantElement =
+            addMessage(
+                "assistant",
+                ""
+            );
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/chat",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            provider:
+                                selectedProvider,
+
+                            messages:
+                                messages,
+
+                            stream:
+                                true
+                        })
+                    }
+                );
+
+            if (!response.ok) {
+
+                let errorText =
+                    "API request failed.";
+
+                try {
+
+                    const error =
+                        await response.json();
+
+                    errorText =
+                        error.error ||
+                        error.message ||
+                        errorText;
+
+                } catch {}
+
+                throw new Error(errorText);
+
+            }
+
+            await readStream(
+                response,
+                assistantElement
+            );
+
+            messages.push({
+                role: "assistant",
+                content:
+                    assistantElement.textContent
+            });
+
+        } catch (error) {
+
+            assistantElement.textContent =
+                "⚠️ " + error.message;
+
+        } finally {
+
+            sendButton.disabled = false;
+
+            messageInput.focus();
+
+        }
+
+    }
 );
 
 
-/* =========================
-   SIDEBAR
-========================= */
+/* ENTER TO SEND */
 
-menuBtn.addEventListener("click", function() {
+messageInput.addEventListener(
+    "keydown",
+    event => {
 
-    sidebar.classList.add("open");
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
 
-});
+            event.preventDefault();
 
+            chatForm.requestSubmit();
 
-closeSidebar.addEventListener("click", function() {
+        }
 
-    sidebar.classList.remove("open");
-
-});
-
-
-/* =========================
-   NEW CHAT
-========================= */
-
-newChat.addEventListener("click", function() {
-
-    messages = [];
-
-    chat.innerHTML = `
-        <div id="welcome" class="welcome">
-
-            <div class="welcome-logo">
-                N
-            </div>
-
-            <h1>
-                Welcome to NEXORA
-            </h1>
-
-            <p>
-                Your simple AI assistant.
-            </p>
-
-        </div>
-    `;
-
-    sidebar.classList.remove("open");
-
-    messageInput.focus();
-
-});
+    }
+);
