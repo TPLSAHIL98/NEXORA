@@ -1,196 +1,142 @@
-<!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8"><meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<!DOCTYPE html>
+<html lang="en">
 
-<meta
-    name="theme-color"
-    content="#08090d"
->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>NEXORA</title>
+    <meta name="theme-color" content="#08090d">
 
-<link
-    rel="stylesheet"
-    href="/static/style.css"
->
+    <title>NEXORA AI</title>
 
-</head><body><div class="app"><!-- =========================
-     SIDEBAR
-========================== -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
 
-<aside id="sidebar">
+<body>
 
-    <div class="sidebar-top">
+<div class="app">
 
-        <div class="sidebar-title">
-            NEXORA
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+
+        <div class="sidebar-header">
+
+            <div class="sidebar-logo">
+                NEXORA
+            </div>
+
+            <button
+                id="closeSidebar"
+                type="button"
+                aria-label="Close sidebar"
+            >
+                ×
+            </button>
+
         </div>
 
         <button
-            id="closeSidebar"
-            class="icon-btn"
+            id="newChat"
+            class="new-chat"
             type="button"
-            aria-label="Close sidebar"
         >
-            ×
+            + New Chat
         </button>
 
-    </div>
+        <div id="history"></div>
 
-    <button
-        id="newChat"
-        type="button"
-    >
-        + New Chat
-    </button>
-
-    <div id="chatHistory"></div>
-
-</aside>
+    </aside>
 
 
-<!-- =========================
-     HEADER
-========================== -->
-
-<header>
-
-    <div class="header-left">
+    <!-- HEADER -->
+    <header>
 
         <button
             id="menuBtn"
-            class="icon-btn"
+            class="icon-button"
             type="button"
             aria-label="Open sidebar"
         >
             ☰
         </button>
 
-        <div class="logo">
+        <div class="brand">
 
-            <div class="logo-mark">
+            <div class="brand-icon">
                 N
             </div>
 
-            <span>
-                NEXORA
-            </span>
+            <span>NEXORA</span>
 
         </div>
 
-    </div>
+        <div class="model-name">
+            Gemini 2.5 Flash
+        </div>
+
+    </header>
 
 
-    <div class="header-right">
+    <!-- MAIN CHAT -->
+    <main>
 
-        <button
-            id="settingsBtn"
-            class="icon-btn"
-            type="button"
-            aria-label="Settings"
-        >
-            ⚙
-        </button>
+        <div id="chat">
 
-    </div>
+            <div id="welcome" class="welcome">
 
-</header>
+                <div class="welcome-logo">
+                    N
+                </div>
 
+                <h1>
+                    Welcome to NEXORA
+                </h1>
 
-<!-- =========================
-     MAIN CHAT
-========================== -->
+                <p>
+                    Your simple AI assistant.
+                </p>
 
-<main>
-
-    <div id="chat">
-
-        <div class="welcome">
-
-            <div class="big-logo">
-                N
             </div>
 
-            <h2>
-                Welcome to NEXORA
-            </h2>
+        </div>
 
-            <p>
-                One interface. Every intelligence.
-            </p>
+    </main>
+
+
+    <!-- MESSAGE INPUT -->
+    <div class="input-area">
+
+        <div class="input-box">
+
+            <textarea
+                id="message"
+                rows="1"
+                placeholder="Message NEXORA..."
+                autocomplete="off"
+                spellcheck="true"
+                aria-label="Message NEXORA"
+            ></textarea>
+
+            <button
+                id="send"
+                type="button"
+                aria-label="Send message"
+            >
+                ➤
+            </button>
 
         </div>
 
-    </div>
+        <div class="hint">
+            NEXORA can make mistakes. Check important information.
+        </div>
 
-</main>
-
-
-<!-- =========================
-     INPUT AREA
-========================== -->
-
-<div class="input-area">
-
-    <div class="input-box">
-
-        <textarea
-            id="message"
-            rows="1"
-            placeholder="Message NEXORA..."
-            autocomplete="off"
-            spellcheck="true"
-            aria-label="Message"
-        ></textarea>
-
-
-        <select
-            id="model"
-            aria-label="Select AI model"
-        >
-            <option value="">
-                Loading models...
-            </option>
-        </select>
-
-
-        <!-- SEND -->
-
-        <button
-            id="send"
-            type="button"
-            aria-label="Send message"
-        >
-            ➤
-        </button>
-
-
-        <!-- STOP -->
-
-        <button
-            id="stopBtn"
-            class="stop-btn"
-            type="button"
-            aria-label="Stop generation"
-            hidden
-        >
-            ■
-        </button>
-
-    </div>
-
-
-    <div class="input-hint">
-        NEXORA can make mistakes. Check important information.
     </div>
 
 </div>
 
-    </div>
 
-    <script src="/static/app.js?v=10001"></script>
+<script src="/static/app.js?v=20001"></script>
 
 </body>
-</html>
+            </html>
