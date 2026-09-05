@@ -1,9 +1,22 @@
 services:
   - type: web
-    name: nexora
+    name: nexora-v2
     runtime: python
+
     buildCommand: pip install -r requirements.txt
+
     startCommand: gunicorn app:app
+
     envVars:
-      - key: EXPERIENTIAL_API_KEY
+
+      - key: EXPLABS_API_KEY
         sync: false
+
+      - key: GPT_MODEL
+        value: gpt-6-astra
+
+      - key: CLAUDE_MODEL
+        value: fable-5
+
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash
