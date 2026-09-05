@@ -302,10 +302,38 @@ chatForm.addEventListener(
                     const error =
                         await response.json();
 
-                    errorText =
-                        error.error ||
-                        error.message ||
-                        errorText;
+                    if (
+                        typeof error.error ===
+                        "string"
+                    ) {
+
+                        errorText =
+                            error.error;
+
+                    }
+                    else if (
+                        error.error?.message
+                    ) {
+
+                        errorText =
+                            error.error.message;
+
+                    }
+                    else if (
+                        typeof error.message ===
+                        "string"
+                    ) {
+
+                        errorText =
+                            error.message;
+
+                    }
+                    else {
+
+                        errorText =
+                            JSON.stringify(error);
+
+                    }
 
                 } catch {}
 
