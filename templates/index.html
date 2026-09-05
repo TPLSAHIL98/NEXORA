@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NEXORA</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside id="sidebar">
+
+        <div class="sidebar-top">
+
+            <div class="sidebar-brand">
+                <div class="logo">N</div>
+
+                <div>
+                    <strong>NEXORA</strong>
+                    <small>AI Workspace</small>
+                </div>
+            </div>
+
+            <button id="closeSidebar">
+                ×
+            </button>
+
+        </div>
+
+        <button id="newChat" class="new-chat">
+            ＋ New Chat
+        </button>
+
+        <div id="chatHistory"></div>
+
+    </aside>
+
+
+    <div class="main">
+
+        <header>
+
+            <button
+                id="menuBtn"
+                class="icon-btn"
+            >
+                ☰
+            </button>
+
+            <div class="brand">
+
+                <div class="logo">
+                    N
+                </div>
+
+                <div>
+                    <h1>NEXORA</h1>
+
+                    <span>
+                        One interface. Every intelligence.
+                    </span>
+                </div>
+
+            </div>
+
+            <button
+                id="settingsBtn"
+                class="icon-btn"
+            >
+                ⚙
+            </button>
+
+        </header>
+
+
+        <main id="chat">
+
+            <div class="welcome">
+
+                <div class="big-logo">
+                    N
+                </div>
+
+                <h2>
+                    Welcome to NEXORA
+                </h2>
+
+                <p>
+                    One interface. Every intelligence.
+                </p>
+
+            </div>
+
+        </main>
+
+
+        <div class="composer">
+
+            <div class="model-row">
+
+                <select id="model">
+                    <option>
+                        Loading models...
+                    </option>
+                </select>
+
+            </div>
+
+            <div class="input-row">
+
+                <textarea
+                    id="message"
+                    placeholder="Message NEXORA..."
+                    rows="1"
+                ></textarea>
+
+                <button id="send">
+                    ➤
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>
