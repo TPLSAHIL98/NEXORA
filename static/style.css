@@ -1,38 +1,48 @@
-/* =========================
-   NEXORA BASE
-========================= */
-
 * {
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
 }
 
 body {
-    margin: 0;
     background: #08090d;
     color: #f5f5f7;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
 }
 
 button,
 select,
 textarea {
-    font-family: inherit;
+    font: inherit;
 }
 
 button {
-    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
+
+/* =========================
+   APP
+========================= */
 
 .app {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background:
+        radial-gradient(
+            circle at 50% -20%,
+            rgba(100, 90, 255, 0.08),
+            transparent 40%
+        ),
+        #08090d;
 }
-
 
 /* =========================
    HEADER
@@ -40,228 +50,336 @@ button {
 
 header {
     height: 70px;
+    min-height: 70px;
     padding: 12px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #20222a;
-    background: #0c0d12;
+    border-bottom: 1px solid #1d1f27;
+    background: rgba(8, 9, 13, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.brand {
+.header-left,
+.header-right {
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.logo,
-.big-logo {
-    display: grid;
-    place-items: center;
-    background: linear-gradient(
-        135deg,
-        #7c3aed,
-        #2563eb
-    );
-    color: white;
-    font-weight: 900;
+    gap: 10px;
 }
 
 .logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 13px;
-}
-
-h1 {
-    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
-.brand span {
-    color: #858895;
-    font-size: 11px;
-}
-
-header button {
-    border: 0;
-    background: #171922;
-    color: white;
-    width: 42px;
-    height: 42px;
+.logo-mark {
+    width: 38px;
+    height: 38px;
     border-radius: 12px;
-    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7c5cff, #4b8cff);
+    color: white;
+    font-size: 19px;
+    font-weight: 900;
+    box-shadow: 0 8px 25px rgba(91, 81, 255, 0.25);
 }
 
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #242630;
+    border-radius: 12px;
+    background: #111219;
+    color: #d8d9df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.icon-btn:hover {
+    background: #181a23;
+    border-color: #363946;
+}
+
+.icon-btn:active {
+    transform: scale(0.94);
+}
 
 /* =========================
-   MAIN CHAT
+   SIDEBAR
 ========================= */
 
-#chat {
-    flex: 1;
-    width: 100%;
-    max-width: 850px;
-    margin: auto;
-    padding: 30px 18px 150px;
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 285px;
+    height: 100vh;
+    background: #0d0e13;
+    border-right: 1px solid #20222b;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
+#sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-top {
+    height: 70px;
+    min-height: 70px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #20222b;
+}
+
+.sidebar-title {
+    font-size: 17px;
+    font-weight: 800;
+}
+
+#closeSidebar {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #aaaeb8;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+#closeSidebar:hover {
+    background: #181a21;
+    color: white;
+}
+
+#newChat {
+    margin: 15px;
+    width: calc(100% - 30px);
+    height: 46px;
+    border: 1px solid #353846;
+    border-radius: 13px;
+    background: #171923;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+#newChat:hover {
+    background: #20222d;
+    border-color: #4b4e5c;
+}
+
+#newChat:active {
+    transform: scale(0.98);
+}
+
+#chatHistory {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 10px 15px;
+}
+
+#chatHistory::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatHistory::-webkit-scrollbar-thumb {
+    background: #2b2d37;
+    border-radius: 10px;
+}
+
+.history-item {
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 9px 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #b8bac3;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.history-item:hover {
+    background: #171921;
+    color: #fff;
+}
+
+.history-item.active {
+    background: #1d1f2a;
+    color: white;
+}
+
+.history-item span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.history-item button {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #777b87;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.history-item button:hover {
+    background: #292b35;
+    color: #ff6868;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+main {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 70px);
+}
+
+#chat {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 35px 20px 180px;
+    flex: 1;
+}
 
 /* =========================
    WELCOME
 ========================= */
 
 .welcome {
-    min-height: 60vh;
+    min-height: 55vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     text-align: center;
 }
 
 .big-logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 25px;
-    font-size: 40px;
-    margin-bottom: 20px;
+    width: 75px;
+    height: 75px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7c5cff, #4b8cff);
+    color: white;
+    font-size: 38px;
+    font-weight: 900;
+    margin-bottom: 22px;
+    box-shadow:
+        0 20px 55px rgba(92, 77, 255, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .welcome h2 {
+    margin: 0 0 9px;
     font-size: 30px;
-    margin: 5px;
+    letter-spacing: -0.5px;
 }
 
 .welcome p {
-    color: #858895;
+    margin: 0;
+    color: #858995;
+    font-size: 15px;
 }
-
 
 /* =========================
    MESSAGES
 ========================= */
 
 .message {
-    padding: 16px;
-    margin: 15px 0;
-    border-radius: 18px;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
+    width: 100%;
+    margin-bottom: 25px;
+    line-height: 1.65;
 }
 
-.user {
-    background: #171922;
+.message.user {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.message.user .response-content {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px 18px 5px 18px;
+    background: #1c1e27;
+    border: 1px solid #292c37;
+    color: #f4f4f6;
     white-space: pre-wrap;
+    word-break: break-word;
 }
 
-.ai {
-    background: #101117;
-    border: 1px solid #20222a;
+.message.ai {
+    padding: 0 2px;
 }
 
 .model-tag {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px 9px;
+    border: 1px solid #292c37;
+    border-radius: 8px;
+    background: #111219;
+    color: #8f93a0;
     font-size: 11px;
-    color: #8b7cf6;
-    margin-bottom: 7px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .response-content {
-    line-height: 1.65;
+    color: #e8e9ed;
+    font-size: 15px;
+    word-wrap: break-word;
     overflow-wrap: anywhere;
 }
-
-
-/* =========================
-   COMPOSER
-========================= */
-
-.composer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 12px;
-    background:
-        linear-gradient(
-            transparent,
-            #08090d 25%
-        );
-    z-index: 50;
-}
-
-.model-row,
-.input-row {
-    max-width: 850px;
-    margin: auto;
-}
-
-.model-row {
-    margin-bottom: 8px;
-}
-
-select,
-textarea,
-#send {
-    border: 1px solid #282b35;
-    background: #11131a;
-    color: white;
-}
-
-select {
-    padding: 10px 14px;
-    border-radius: 12px;
-    outline: none;
-}
-
-select:focus {
-    border-color: #7c3aed;
-}
-
-.input-row {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-}
-
-textarea {
-    flex: 1;
-    resize: none;
-    padding: 14px;
-    border-radius: 16px;
-    outline: none;
-    font-size: 15px;
-    min-height: 50px;
-    max-height: 180px;
-}
-
-textarea:focus {
-    border-color: #7c3aed;
-}
-
-#send {
-    width: 50px;
-    min-width: 50px;
-    height: 50px;
-    border-radius: 16px;
-    font-size: 20px;
-    transition: 0.15s ease;
-}
-
-#send:hover:not(:disabled) {
-    background: #181b25;
-}
-
-#send:active:not(:disabled) {
-    transform: scale(0.95);
-}
-
-#send:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 
 /* =========================
    THINKING
@@ -270,39 +388,39 @@ textarea:focus {
 .thinking {
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: #9b9daa;
-    font-size: 14px;
-    margin-bottom: 10px;
+    gap: 9px;
+    color: #8f93a0;
+    font-size: 13px;
+    margin-bottom: 7px;
 }
 
 .thinking-dots {
     display: flex;
+    align-items: center;
     gap: 4px;
 }
 
 .thinking-dots span {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: #8b7cf6;
-    animation: thinkingPulse 1.2s infinite;
+    background: #8588ff;
+    animation: thinkingPulse 1.2s infinite ease-in-out;
 }
 
 .thinking-dots span:nth-child(2) {
-    animation-delay: .2s;
+    animation-delay: 0.15s;
 }
 
 .thinking-dots span:nth-child(3) {
-    animation-delay: .4s;
+    animation-delay: 0.3s;
 }
 
 @keyframes thinkingPulse {
-
     0%,
     60%,
     100% {
-        opacity: .25;
+        opacity: 0.25;
         transform: translateY(0);
     }
 
@@ -312,180 +430,298 @@ textarea:focus {
     }
 }
 
-
 /* =========================
-   SIDEBAR
+   MARKDOWN
 ========================= */
 
-.app {
-    display: flex;
+.response-content h2,
+.response-content h3,
+.response-content h4 {
+    color: #fff;
+    margin-top: 20px;
+    margin-bottom: 9px;
+    line-height: 1.3;
 }
 
-#sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-
-    width: 280px;
-
-    background: #0c0d12;
-
-    border-right:
-        1px solid #20222a;
-
-    padding: 16px;
-
-    z-index: 100;
-
-    transform: translateX(0);
-
-    transition:
-        transform .25s ease;
-
-    overflow-y: auto;
+.response-content h2 {
+    font-size: 23px;
 }
 
-.main {
-    width: 100%;
-    min-height: 100vh;
-}
-
-.sidebar-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-bottom: 20px;
-}
-
-.sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.sidebar-brand strong {
-    display: block;
-}
-
-.sidebar-brand small {
-    color: #858895;
-    font-size: 11px;
-}
-
-#closeSidebar {
-    display: none;
-
-    border: 0;
-    background: #171922;
-    color: white;
-
-    width: 34px;
-    height: 34px;
-
-    border-radius: 10px;
-
+.response-content h3 {
     font-size: 20px;
 }
 
-.new-chat {
-    width: 100%;
-
-    padding: 12px;
-
-    border: 1px solid #282b35;
-
-    background: #151720;
-    color: white;
-
-    border-radius: 12px;
-
-    font-size: 14px;
-
-    margin-bottom: 15px;
+.response-content h4 {
+    font-size: 17px;
 }
 
-.new-chat:hover {
-    background: #1b1e29;
+.response-content strong {
+    color: #fff;
+    font-weight: 750;
 }
 
+.response-content em {
+    color: #dddfea;
+}
+
+.response-content code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #171923;
+    border: 1px solid #292c37;
+    color: #d7d8ff;
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+    font-size: 0.9em;
+}
+
+.response-content ul,
+.response-content ol {
+    margin: 10px 0;
+    padding-left: 25px;
+}
+
+.response-content li {
+    margin: 4px 0;
+}
 
 /* =========================
-   CHAT HISTORY
+   CODE BLOCKS
 ========================= */
 
-.history-item {
+.nexora-code-wrapper {
+    width: 100%;
+    margin: 16px 0;
+    border: 1px solid #292c37;
+    border-radius: 13px;
+    overflow: hidden;
+    background: #0b0c11;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+}
+
+.nexora-code-header {
+    min-height: 42px;
+    padding: 7px 9px 7px 13px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    background: #13151c;
+    border-bottom: 1px solid #292c37;
+}
 
-    padding: 11px;
+.nexora-code-language {
+    color: #969aa7;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
 
-    margin-bottom: 5px;
-
-    border-radius: 10px;
-
-    color: #bbbcc5;
-
+.nexora-copy-btn {
+    min-width: 62px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #343743;
+    border-radius: 8px;
+    background: #1a1c24;
+    color: #d9dbe2;
     cursor: pointer;
-
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 700;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
 }
 
-.history-item:hover,
-.history-item.active {
-    background: #171922;
-    color: white;
+.nexora-copy-btn:hover {
+    background: #242731;
+    border-color: #505361;
 }
 
-.history-item span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.nexora-copy-btn:active {
+    transform: scale(0.95);
 }
 
-.history-item button {
+.nexora-code-wrapper pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    background: #090a0e;
+}
+
+.nexora-code-wrapper pre::-webkit-scrollbar {
+    height: 7px;
+}
+
+.nexora-code-wrapper pre::-webkit-scrollbar-thumb {
+    background: #2b2d37;
+    border-radius: 10px;
+}
+
+.nexora-code-wrapper pre code {
+    display: block;
+    padding: 0;
     border: 0;
     background: transparent;
-    color: #777985;
-
-    font-size: 18px;
-
-    cursor: pointer;
+    color: #e5e7ee;
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre;
 }
-
-.history-item button:hover {
-    color: #ff6b6b;
-}
-
 
 /* =========================
-   HEADER / MOBILE MENU
+   INPUT AREA
 ========================= */
 
-.main header {
-    padding-left: 310px;
+.input-area {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    padding: 15px 18px 18px;
+    background: linear-gradient(
+        to top,
+        #08090d 70%,
+        rgba(8, 9, 13, 0)
+    );
+    pointer-events: none;
 }
 
-.icon-btn {
+.input-box {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 9px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    border: 1px solid #2a2c36;
+    border-radius: 19px;
+    background: rgba(17, 18, 25, 0.96);
+    box-shadow:
+        0 12px 45px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.015);
+    pointer-events: auto;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+#message {
+    flex: 1;
+    min-width: 0;
+    max-height: 180px;
+    min-height: 42px;
+    padding: 11px 9px;
+    resize: none;
+    overflow-y: auto;
     border: 0;
+    outline: none;
+    background: transparent;
+    color: #f4f4f7;
+    font-size: 15px;
+    line-height: 1.45;
+}
 
-    background: #171922;
-    color: white;
+#message::placeholder {
+    color: #6f7380;
+}
 
-    width: 42px;
+#message::-webkit-scrollbar {
+    width: 5px;
+}
+
+#message::-webkit-scrollbar-thumb {
+    background: #30323d;
+    border-radius: 10px;
+}
+
+/* =========================
+   MODEL SELECT
+========================= */
+
+#model {
+    width: 155px;
+    min-width: 155px;
     height: 42px;
-
-    border-radius: 12px;
-
-    font-size: 18px;
+    padding: 0 10px;
+    border: 1px solid #2d303b;
+    border-radius: 11px;
+    outline: none;
+    background: #13151c;
+    color: #d9dbe2;
+    cursor: pointer;
+    font-size: 12px;
 }
 
-#menuBtn {
-    display: none;
+#model:hover {
+    border-color: #444754;
 }
 
+#model:focus {
+    border-color: #6259d9;
+}
+
+#model option,
+#model optgroup {
+    background: #111219;
+    color: #f0f1f5;
+}
+
+/* =========================
+   SEND BUTTON
+========================= */
+
+#send {
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+    border: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #7561ff, #4d8cff);
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease,
+        filter 0.15s ease;
+}
+
+#send:hover {
+    filter: brightness(1.08);
+}
+
+#send:active {
+    transform: scale(0.93);
+}
+
+#send:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+/* IMPORTANT:
+   JS uses hidden=true while generating.
+*/
+
+#send[hidden] {
+    display: none !important;
+}
 
 /* =========================
    STOP BUTTON
@@ -495,30 +731,26 @@ textarea:focus {
     width: 50px;
     min-width: 50px;
     height: 50px;
-
     border: 0;
     border-radius: 16px;
-
     background: #ff4d4d;
     color: white;
-
     font-size: 18px;
     font-weight: 700;
-
     cursor: pointer;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     transition:
-        transform .15s ease,
-        opacity .15s ease,
-        background .15s ease;
+        transform 0.15s ease,
+        opacity 0.15s ease,
+        background 0.15s ease,
+        filter 0.15s ease;
 }
 
 .stop-btn:hover {
     background: #ff3838;
+    filter: brightness(1.05);
 }
 
 .stop-btn:active {
@@ -526,344 +758,231 @@ textarea:focus {
 }
 
 .stop-btn[hidden] {
-    display: none;
+    display: none !important;
 }
 
-
 /* =========================
-   NEXORA CODE BLOCKS
+   FOOTER TEXT
 ========================= */
 
-.nexora-code-wrapper {
+.input-hint {
     width: 100%;
-
-    margin: 16px 0;
-
-    border:
-        1px solid rgba(
-            255,
-            255,
-            255,
-            0.12
-        );
-
-    border-radius: 13px;
-
-    overflow: hidden;
-
-    background: #0b0d12;
-
-    box-shadow:
-        0 8px 30px
-        rgba(0, 0, 0, 0.18);
+    max-width: 850px;
+    margin: 7px auto 0;
+    text-align: center;
+    color: #5e626d;
+    font-size: 10px;
+    pointer-events: none;
 }
-
-
-/* Code header */
-
-.nexora-code-header {
-    min-height: 40px;
-
-    padding:
-        0 10px
-        0 14px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-    background:
-        rgba(
-            255,
-            255,
-            255,
-            0.055
-        );
-
-    border-bottom:
-        1px solid
-        rgba(
-            255,
-            255,
-            255,
-            0.07
-        );
-}
-
-
-/* Language name */
-
-.nexora-code-language {
-    color: #a7a9b4;
-
-    font-size: 12px;
-
-    font-family:
-        monospace;
-
-    text-transform:
-        lowercase;
-}
-
-
-/* Copy button */
-
-.nexora-copy-btn {
-    border: 0;
-
-    border-radius: 7px;
-
-    padding:
-        6px 11px;
-
-    background:
-        rgba(
-            255,
-            255,
-            255,
-            0.09
-        );
-
-    color: white;
-
-    cursor: pointer;
-
-    font-size: 12px;
-
-    transition:
-        background .15s ease,
-        transform .15s ease;
-}
-
-.nexora-copy-btn:hover {
-    background:
-        rgba(
-            255,
-            255,
-            255,
-            0.17
-        );
-}
-
-.nexora-copy-btn:active {
-    transform:
-        scale(0.95);
-}
-
-
-/* Code area */
-
-.nexora-code-wrapper pre {
-    margin: 0;
-
-    padding: 16px;
-
-    overflow-x: auto;
-
-    white-space: pre;
-
-    -webkit-overflow-scrolling:
-        touch;
-}
-
-
-/* Actual code */
-
-.nexora-code-wrapper code {
-    display: block;
-
-    color: #e7e9ef;
-
-    font-family:
-        "Fira Code",
-        "Cascadia Code",
-        Consolas,
-        "Courier New",
-        monospace;
-
-    font-size: 13px;
-
-    line-height: 1.6;
-
-    tab-size: 4;
-}
-
 
 /* =========================
-   INLINE CODE
+   SCROLLBAR
 ========================= */
 
-.response-content
-code:not(
-    .nexora-code-wrapper code
-) {
-    padding:
-        2px 6px;
-
-    border-radius: 5px;
-
-    background:
-        rgba(
-            255,
-            255,
-            255,
-            0.08
-        );
-
-    color: #ddd;
-
-    font-family:
-        monospace;
-
-    font-size: 0.92em;
+body::-webkit-scrollbar,
+#chat::-webkit-scrollbar {
+    width: 7px;
 }
 
-
-/* =========================
-   MARKDOWN CONTENT
-========================= */
-
-.response-content h2,
-.response-content h3,
-.response-content h4 {
-    margin-top: 18px;
-    margin-bottom: 8px;
-}
-
-.response-content h2 {
-    font-size: 22px;
-}
-
-.response-content h3 {
-    font-size: 19px;
-}
-
-.response-content h4 {
-    font-size: 16px;
-}
-
-.response-content strong {
-    font-weight: 700;
-}
-
-.response-content em {
-    font-style: italic;
-}
-
-.response-content ul {
-    padding-left: 22px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-}
-
-.response-content li {
-    margin: 4px 0;
-}
-
-
-/* =========================
-   SCROLLBARS
-========================= */
-
-#sidebar::-webkit-scrollbar,
-.nexora-code-wrapper pre::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-#sidebar::-webkit-scrollbar-track,
-.nexora-code-wrapper pre::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track,
+#chat::-webkit-scrollbar-track {
     background: transparent;
 }
 
-#sidebar::-webkit-scrollbar-thumb,
-.nexora-code-wrapper pre::-webkit-scrollbar-thumb {
-    background: #292c36;
+body::-webkit-scrollbar-thumb,
+#chat::-webkit-scrollbar-thumb {
+    background: #272a34;
     border-radius: 10px;
 }
 
+body::-webkit-scrollbar-thumb:hover,
+#chat::-webkit-scrollbar-thumb:hover {
+    background: #353844;
+}
+
+/* =========================
+   SELECTION
+========================= */
+
+::selection {
+    background: rgba(105, 92, 255, 0.35);
+    color: white;
+}
+
+/* =========================
+   FOCUS
+========================= */
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #6d60ff;
+    outline-offset: 2px;
+}
 
 /* =========================
    MOBILE
 ========================= */
 
-@media (max-width: 800px) {
+@media (max-width: 700px) {
+
+    header {
+        height: 62px;
+        min-height: 62px;
+        padding: 10px 12px;
+    }
+
+    main {
+        min-height: calc(100vh - 62px);
+    }
+
+    .logo {
+        font-size: 17px;
+    }
+
+    .logo-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 17px;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
 
     #sidebar {
-        transform:
-            translateX(-100%);
+        width: min(285px, 88vw);
     }
 
-    #sidebar.open {
-        transform:
-            translateX(0);
+    #chat {
+        padding: 22px 12px 175px;
     }
 
-    #closeSidebar {
-        display: block;
+    .welcome {
+        min-height: 55vh;
     }
 
-    #menuBtn {
-        display: block;
-    }
-
-    .main header {
-        padding-left: 12px;
-    }
-}
-
-
-@media (max-width: 600px) {
-
-    .brand span {
-        display: none;
+    .big-logo {
+        width: 65px;
+        height: 65px;
+        border-radius: 20px;
+        font-size: 32px;
     }
 
     .welcome h2 {
         font-size: 25px;
     }
 
-    #chat {
-        padding:
-            20px 12px 145px;
+    .welcome p {
+        font-size: 14px;
     }
 
-    .message {
-        padding: 13px;
-        border-radius: 15px;
+    .message.user .response-content {
+        max-width: 88%;
     }
 
-    .composer {
-        padding: 8px;
+    .response-content {
+        font-size: 14px;
+    }
+
+    .input-area {
+        padding: 9px 9px 12px;
+    }
+
+    .input-box {
+        padding: 7px;
+        gap: 6px;
+        border-radius: 16px;
+    }
+
+    #model {
+        width: 105px;
+        min-width: 105px;
+        height: 42px;
+        font-size: 11px;
+        padding: 0 7px;
+    }
+
+    #send,
+    .stop-btn {
+        width: 45px;
+        min-width: 45px;
+        height: 45px;
+        border-radius: 13px;
+    }
+
+    #message {
+        font-size: 14px;
+        min-height: 40px;
+    }
+
+    .input-hint {
+        display: none;
+    }
+
+    .nexora-code-wrapper {
+        border-radius: 10px;
     }
 
     .nexora-code-wrapper pre {
         padding: 12px;
     }
 
-    .nexora-code-wrapper code {
+    .nexora-code-wrapper pre code {
         font-size: 12px;
-    }
-
-    .nexora-code-header {
-        min-height: 38px;
     }
 }
 
-
 /* =========================
-   ACCESSIBILITY
+   VERY SMALL PHONES
 ========================= */
 
-button:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-    outline:
-        2px solid #7c3aed;
+@media (max-width: 430px) {
 
-    outline-offset: 2px;
-        }
+    #model {
+        width: 85px;
+        min-width: 85px;
+        font-size: 10px;
+    }
+
+    #send,
+    .stop-btn {
+        width: 43px;
+        min-width: 43px;
+        height: 43px;
+        font-size: 17px;
+    }
+
+    .message.user .response-content {
+        max-width: 92%;
+    }
+
+    .nexora-code-header {
+        padding-left: 9px;
+    }
+
+    .nexora-copy-btn {
+        min-width: 57px;
+        height: 28px;
+        font-size: 11px;
+    }
+}
+
+/* =========================
+   REDUCED MOTION
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+   }
