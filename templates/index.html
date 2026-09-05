@@ -2,99 +2,138 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="theme-color" content="#08090d">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>NEXORA AI</title>
+    <title>NEXORA V2</title>
 
-    <link rel="stylesheet" href="/static/style.css">
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar">
+    <header class="topbar">
 
-        <div class="sidebar-header">
-
-            <div class="sidebar-logo">
-                NEXORA
-            </div>
-
-            <button
-                id="closeSidebar"
-                type="button"
-                aria-label="Close sidebar"
-            >
-                ×
-            </button>
-
+        <div class="brand">
+            <span>NEXORA</span>
+            <small>V2</small>
         </div>
 
         <button
             id="newChat"
             class="new-chat"
-            type="button"
         >
             + New Chat
         </button>
 
-        <div id="history"></div>
-
-    </aside>
-
-
-    <!-- HEADER -->
-    <header>
-
-        <button
-            id="menuBtn"
-            class="icon-button"
-            type="button"
-            aria-label="Open sidebar"
-        >
-            ☰
-        </button>
-
-        <div class="brand">
-
-            <div class="brand-icon">
-                N
-            </div>
-
-            <span>NEXORA</span>
-
-        </div>
-
-        <div class="model-name">
-            Gemini 2.5 Flash
-        </div>
-
     </header>
 
 
-    <!-- MAIN CHAT -->
-    <main>
+    <section class="model-selector">
 
-        <div id="chat">
+        <button
+            class="model-card active"
+            data-model="gpt"
+        >
 
-            <div id="welcome" class="welcome">
+            <div class="model-icon gpt-icon">
+                G
+            </div>
 
-                <div class="welcome-logo">
-                    N
-                </div>
+            <div>
+                <strong>ChatGPT</strong>
+                <span>GPT-6 Astra</span>
+            </div>
 
-                <h1>
-                    Welcome to NEXORA
-                </h1>
+        </button>
 
-                <p>
-                    Your simple AI assistant.
-                </p>
+
+        <button
+            class="model-card"
+            data-model="claude"
+        >
+
+            <div class="model-icon claude-icon">
+                C
+            </div>
+
+            <div>
+                <strong>Claude</strong>
+                <span>Fable 5</span>
+            </div>
+
+        </button>
+
+
+        <button
+            class="model-card"
+            data-model="gemini"
+        >
+
+            <div class="model-icon gemini-icon">
+                G
+            </div>
+
+            <div>
+                <strong>Gemini</strong>
+                <span>3.7 Flash</span>
+            </div>
+
+        </button>
+
+    </section>
+
+
+    <main
+        id="chat"
+        class="chat"
+    >
+
+        <div
+            id="welcome"
+            class="welcome"
+        >
+
+            <div class="nexora-logo">
+                N
+            </div>
+
+            <h1>
+                What can I help you build?
+            </h1>
+
+            <p>
+                Ask NEXORA anything.
+            </p>
+
+            <div class="suggestions">
+
+                <button data-prompt="Build me a Minecraft Fabric mod">
+                    Minecraft mod
+                </button>
+
+                <button data-prompt="Create a modern HTML website">
+                    Build a website
+                </button>
+
+                <button data-prompt="Help me debug my code">
+                    Debug code
+                </button>
+
+                <button data-prompt="Explain this programming concept">
+                    Explain code
+                </button>
 
             </div>
 
@@ -103,40 +142,46 @@
     </main>
 
 
-    <!-- MESSAGE INPUT -->
-    <div class="input-area">
+    <div class="composer-wrapper">
 
-        <div class="input-box">
+        <form
+            id="chatForm"
+            class="composer"
+        >
 
             <textarea
                 id="message"
-                rows="1"
                 placeholder="Message NEXORA..."
-                autocomplete="off"
-                spellcheck="true"
-                aria-label="Message NEXORA"
+                rows="1"
             ></textarea>
 
             <button
-                id="send"
-                type="button"
-                aria-label="Send message"
+                id="sendButton"
+                type="submit"
             >
-                ➤
+                ↑
             </button>
 
-        </div>
+        </form>
 
-        <div class="hint">
-            NEXORA can make mistakes. Check important information.
+        <div class="composer-info">
+
+            <span id="selectedModel">
+                ChatGPT · GPT-6 Astra
+            </span>
+
+            <span>
+                NEXORA V2
+            </span>
+
         </div>
 
     </div>
 
 </div>
 
-
-<script src="/static/app.js?v=20001"></script>
+<script src="/static/app.js"></script>
 
 </body>
-            </html>
+
+    </html>
