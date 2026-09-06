@@ -1,144 +1,260 @@
 import os
+import json
 import requests
-from flask import Flask, jsonify, render_template, request, Response
-from dotenv import load_dotenv
 
-load_dotenv()
+from flask import Flask, render_template, request, Response, jsonify
+
 
 app = Flask(__name__)
 
+
+# ============================================================
+# EXPERIENTIAL LABS
+# ============================================================
+
 API_BASE = "https://api.experientiallabs.ai/v1"
-API_KEY = os.getenv("EXPLABS_API_KEY", "")
+
+EXPLABS_API_KEY = os.getenv("EXPLABS_API_KEY")
+
+
+# ============================================================
+# NEXORA MODELS
+# ============================================================
 
 MODELS = {
-    "gpt": {
-        "name": "ChatGPT",
-        "model": os.getenv("GPT_MODEL", "gpt-6-astra"),
-        "description": "Advanced intelligence"
-    },
-    "claude": {
-        "name": "Claude",
-        "model": os.getenv("CLAUDE_MODEL", "fable-5"),
-        "description": "Deep reasoning"
-    },
-    "gemini": {
-        "name": "Gemini",
-        "model": os.getenv("GEMINI_MODEL", "gemini-3.7-flash"),
-        "description": "Fast multimodal intelligence"
-    }
+    "gpt": os.getenv(
+        "GPT_MODEL",
+        "gpt-5.6-luna"
+    ),
+
+    "claude": os.getenv(
+        "CLAUDE_MODEL",
+        "deepseek-v4-flash"
+    ),
+
+    "gemini": os.getenv(
+        "GEMINI_MODEL",
+        "gemini-3.7-flash"
+    ),
 }
 
 
-def api_headers():
-    return {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
-
+# ============================================================
+# HOME
+# ============================================================
 
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
 
-@app.route("/api/health")
-def health():
-    return jsonify({
-        "ok": True,
-        "configured": bool(API_KEY)
-    })
-
-
-@app.route("/api/models")
-def get_models():
-    return jsonify({
-        key: {
-            "name": value["name"],
-            "model": value["model"],
-            "description": value["description"]
-        }
-        for key, value in MODELS.items()
-    })
-
+# ============================================================
+# CHAT
+# ============================================================
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
 
-    if not API_KEY:
+    if not EXPLABS_API_KEY:
         return jsonify({
             "error": "EXPLABS_API_KEY is not configured on the server."
         }), 500
 
+
     data = request.get_json(silent=True) or {}
 
+
     provider = data.get("provider", "gpt")
+
     messages = data.get("messages", [])
 
+    stream = data.get("stream", True)
+
+
+    # --------------------------------------------------------
+    # Validate provider
+    # --------------------------------------------------------
+
     if provider not in MODELS:
+
         return jsonify({
-            "error": "Invalid model."
+            "error": f"Unknown provider: {provider}"
         }), 400
 
-    if not messages:
+
+    model = MODELS[provider]
+
+
+    # --------------------------------------------------------
+    # Validate messages
+    # --------------------------------------------------------
+
+    if not isinstance(messages, list) or not messages:
+
         return jsonify({
-            "error": "No messages supplied."
+            "error": "No messages were provided."
         }), 400
 
-    model = MODELS[provider]["model"]
+
+    # --------------------------------------------------------
+    # Experiential Labs request
+    # --------------------------------------------------------
 
     payload = {
         "model": model,
         "messages": messages,
-        "stream": True
+        "stream": bool(stream)
     }
 
+
+    headers = {
+        "Authorization": f"Bearer {EXPLABS_API_KEY}",
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+    }
+
+
     try:
-        upstream = requests.post(
+
+        response = requests.post(
             f"{API_BASE}/chat/completions",
-            headers=api_headers(),
+            headers=headers,
             json=payload,
-            stream=True,
-            timeout=(20, 300)
+            stream=bool(stream),
+            timeout=300
         )
+
+
+        # ----------------------------------------------------
+        # API error
+        # ----------------------------------------------------
+
+        if not response.ok:
+
+            try:
+                error_data = response.json()
+
+            except Exception:
+
+                error_data = {
+                    "error": response.text
+                }
+
+
+            return jsonify(error_data), response.status_code
+
+
+        # ----------------------------------------------------
+        # Streaming
+        # ----------------------------------------------------
+
+        if stream:
+
+            def generate():
+
+                for line in response.iter_lines(
+                    decode_unicode=True
+                ):
+
+                    if line:
+
+                        yield line + "\n\n"
+
+
+            return Response(
+                generate(),
+                content_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no"
+                }
+            )
+
+
+        # ----------------------------------------------------
+        # Normal JSON response
+        # ----------------------------------------------------
+
+        return jsonify(response.json())
+
+
+    except requests.Timeout:
+
+        return jsonify({
+            "error": "The AI request timed out."
+        }), 504
+
 
     except requests.RequestException as error:
+
         return jsonify({
-            "error": f"API connection failed: {error}"
+            "error": str(error)
         }), 502
 
-    if upstream.status_code >= 400:
-        return Response(
-            upstream.content,
-            status=upstream.status_code,
-            content_type=upstream.headers.get(
-                "Content-Type",
-                "application/json"
-            )
-        )
 
-    def stream():
+    except Exception as error:
 
-        for chunk in upstream.iter_content(
-            chunk_size=4096
-        ):
-            if chunk:
-                yield chunk
+        return jsonify({
+            "error": str(error)
+        }), 500
 
-    return Response(
-        stream(),
-        content_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no"
-        }
-    )
 
+# ============================================================
+# MODEL LIST
+# ============================================================
+
+@app.route("/api/models", methods=["GET"])
+def models():
+
+    return jsonify({
+        "models": [
+            {
+                "provider": "gpt",
+                "model": MODELS["gpt"],
+                "name": "GPT-5.6 Luna"
+            },
+            {
+                "provider": "claude",
+                "model": MODELS["claude"],
+                "name": "DeepSeek V4 Flash"
+            },
+            {
+                "provider": "gemini",
+                "model": MODELS["gemini"],
+                "name": "Gemini 3.7 Flash"
+            }
+        ]
+    })
+
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+@app.route("/health")
+def health():
+
+    return jsonify({
+        "status": "ok",
+        "nexora": "V2"
+    })
+
+
+# ============================================================
+# RUN
+# ============================================================
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
+
+    port = int(
+        os.getenv(
+            "PORT",
+            "5000"
+        )
+    )
 
     app.run(
         host="0.0.0.0",
         port=port,
         debug=False
-        )
+            )
